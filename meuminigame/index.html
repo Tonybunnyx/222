@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Parabéns Véinha</title>
+<style>
+  body {
+    margin: 0;
+    background: #87ceeb;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+  canvas {
+    display: block;
+    /* Background padrão, troque pelo seu arquivo */
+    background: url('img/bg-grass.png') no-repeat center/cover;
+  }
+  #message {
+    position: absolute;
+    top: 35%;
+    width: 100%;
+    text-align: center;
+    font-size: 48px;
+    color: #fff;
+    text-shadow: 2px 2px 6px #000;
+    display: none;
+  }
+  /* Controles mobile */
+  .controls {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+  }
+  .btn {
+    width: 70px;
+    height: 70px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    font-size: 36px;
+    text-align: center;
+    line-height: 70px;
+    user-select: none;
+    pointer-events: auto;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<div id="message">🎉 Parabéns véinha 🎉</div>
+
+<div class="controls">
+  <div class="btn" id="btnLeft">←</div>
+  <div class="btn" id="btnRight">→</div>
+</div>
+
+<!-- Áudios -->
+<audio id="musicBox" loop>
+  <!-- Troque pelo seu arquivo de música inicial -->
+  <source src="audio/music-box.mp3" type="audio/mpeg" />
+</audio>
+<audio id="cheer">
+  <!-- Troque pelo seu arquivo de comemoração -->
+  <source src="audio/kids-cheer.mp3" type="audio/mpeg" />
+</audio>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+/* Troque as URLs abaixo pelas imagens que você colocar na pasta img/ */
+const playerImg = new Image();
+playerImg.src = 'img/player-girl-pixel.png'; // imagem da menina de cabelo castanho e vestido vermelho
+
+const npcImg = new Image();
+npcImg.src = 'img/bunny-pixel.png'; // imagem do coelho fofo gigante
+
+let player = { x: 50, y: 280, width: 48, height: 64, speed: 3 };
+let npc = { x: 650, y: 270, width: 64, height: 80 };
+
+let keys = {};
+let gameOver = false;
+
+/* Troque as URLs abaixo pelos fundos que você colocar na pasta img/ */
+let backgroundStart = 'img/bg-grass.png';   // cenário inicial
+let backgroundParty = 'img/bg-party-pixel.png'; // cenário festa
+
+let currentBg = backgroundStart;
+
+document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+function startMusic() {
+  document.getElementById('musicBox').play().catch(() => {});
+}
+
+function switchToParty() {
+  gameOver = true;
+  currentBg = backgroundParty;
+  document.getElementById('musicBox').pause();
+  document.getElementById('cheer').play();
+  document.getElementById('message').style.display = 'block';
+}
+
+function update() {
+  if (!gameOver) {
+    if (keys['ArrowRight'] || keys['d'] || keys['right']) player.x += player.speed;
+    if (keys['ArrowLeft'] || keys['a'] || keys['left']) player.x -= player.speed;
+
+    // colisão simples
+    if (
+      player.x + player.width > npc.x &&
+      player.x < npc.x + npc.width &&
+      player.y + player.height > npc.y &&
+      player.y < npc.y + npc.height
+    ) {
+      switchToParty();
+    }
+  }
+}
+
+function draw() {
+  const bg = new Image();
+  bg.src = currentBg;
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
+  ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+  ctx.drawImage(npcImg, npc.x, npc.y, npc.width, npc.height);
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+playerImg.onload = () => {
+  npcImg.onload = () => {
+    startMusic();
+    gameLoop();
+  };
+};
+
+// Controles mobile (botões)
+const btnLeft = document.getElementById('btnLeft');
+const btnRight = document.getElementById('btnRight');
+
+btnLeft.addEventListener('touchstart', () => {
+  keys['left'] = true;
+});
+btnLeft.addEventListener('touchend', () => {
+  keys['left'] = false;
+});
+
+btnRight.addEventListener('touchstart', () => {
+  keys['right'] = true;
+});
+btnRight.addEventListener('touchend', () => {
+  keys['right'] = false;
+});
+</script>
+
+</body>
+</html>
